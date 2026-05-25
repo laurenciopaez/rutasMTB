@@ -46,8 +46,12 @@ npm run electron             # corre electron contra dist/ (production)
 - Tipo de ruta: entrenamiento vs viaje multi-día (días + carga); dificultad calculada con fatiga acumulada
 - Nivel dinámico estilo CTL/ATL/TSB con etiquetas (sin actividad → experto) y forma (descansado / en forma / cargado / sobrecarga)
 
-**Fase 4 — pendiente**
-- Calculadora de desarrollos (relación de cambios)
+**Fase 4 — hecho**
+- Specs de bici: rodado, ancho de neumático, longitud de palanca, plato/s y cassette (con presets SRAM/Shimano)
+- Override de circunferencia para valores empíricos (rodada cargada)
+- Tabla de desarrollos: matriz plato×piñón con métricas seleccionables (desarrollo / velocidad@cadencia / ratio / gain ratio)
+- Heatmap de marchas + barra ordenada por desarrollo para ver overlap y rango
+- Tabs en "Mi bicicleta": Componentes / Desarrollos / Specs
 
 ## Estructura
 
