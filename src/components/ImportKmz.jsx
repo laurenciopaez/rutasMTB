@@ -40,9 +40,11 @@ export default function ImportKmz({ onImported }) {
         onChange={(e) => handleFiles(Array.from(e.target.files || []))}
       />
       <button className="primary" disabled={busy} onClick={() => inputRef.current?.click()}>
-        {busy ? 'Importando…' : 'Importar KMZ/KML'}
+        {busy ? 'Importando…' : '↥ Importar KMZ/KML'}
       </button>
-      {error && <span style={{ color: 'var(--danger)', marginLeft: 12 }}>{error}</span>}
+      {error && (
+        <span style={{ color: 'var(--rust)', marginLeft: 12, fontSize: 12 }}>{error}</span>
+      )}
     </>
   );
 }

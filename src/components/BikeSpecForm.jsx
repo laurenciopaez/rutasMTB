@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useBikeSpec, saveBikeSpec } from '../store/useBikeSpec.js';
 import { wheelCircumferenceMm } from '../lib/gearing.js';
+import { SectionHead } from './atoms.jsx';
 
 const PRESET_CASSETTES = {
   'SRAM Eagle 10-50 (12v)':       [10, 12, 14, 16, 18, 21, 24, 28, 32, 36, 42, 50],
@@ -24,22 +25,16 @@ export default function BikeSpecForm() {
     next[idx] = Number(val) || 0;
     update({ chainrings: next });
   }
-  function addChainring() { update({ chainrings: [...form.chainrings, 30] }); }
-  function removeChainring(idx) {
-    if (form.chainrings.length <= 1) return;
-    update({ chainrings: form.chainrings.filter((_, i) => i !== idx) });
-  }
+  const addChainring    = () => update({ chainrings: [...form.chainrings, 30] });
+  const removeChainring = (i) => form.chainrings.length > 1 && update({ chainrings: form.chainrings.filter((_, k) => k !== i) });
 
   function setCog(idx, val) {
     const next = [...form.cassette];
     next[idx] = Number(val) || 0;
     update({ cassette: next });
   }
-  function addCog() { update({ cassette: [...form.cassette, 51] }); }
-  function removeCog(idx) {
-    if (form.cassette.length <= 2) return;
-    update({ cassette: form.cassette.filter((_, i) => i !== idx) });
-  }
+  const addCog    = () => update({ cassette: [...form.cassette, 51] });
+  const removeCog = (i) => form.cassette.length > 2 && update({ cassette: form.cassette.filter((_, k) => k !== i) });
 
   function loadPreset(name) {
     if (!PRESET_CASSETTES[name]) return;
@@ -48,7 +43,6 @@ export default function BikeSpecForm() {
 
   function submit(e) {
     e.preventDefault();
-    // Sanear y ordenar cassette ascendente (más chico al más grande).
     const clean = {
       ...form,
       tireWidthMm: Number(form.tireWidthMm) || 0,
@@ -63,94 +57,93 @@ export default function BikeSpecForm() {
     setSavedAt(Date.now());
   }
 
-  const computedCirc = Math.round(wheelCircumferenceMm(form));
+  const computedCirc = Math.round(wheelCircumferenceMm({ ...form, customCircumferenceMm: form.customCircumferenceMm ? Number(form.customCircumferenceMm) : null }));
 
   return (
-    <form onSubmit={submit} className="card" style={{ display: 'grid', gap: 16 }}>
-      <h3 style={{ marginTop: 0 }}>Specs de la bicicleta</h3>
+    <form onSubmit={submit} className="card" style={{ padding: 26, display: 'grid', gap: 22 }}>
+      <SectionHead kicker="Ficha técnica" title="Specs de la bicicleta" />
 
       <section>
-        <div className="lbl">Rueda</div>
+        <div className="eyebrow" style={{ marginBottom: 10 }}>Rueda</div>
         <div className="row gap" style={{ flexWrap: 'wrap', alignItems: 'flex-end' }}>
-          <label>
-            <div className="lbl" style={{ fontSize: 11 }}>Rodado</div>
-            <select value={form.wheelSize} onChange={(e) => update({ wheelSize: e.target.value })}>
+          <div className="field">
+            <span className="lbl">Rodado</span>
+            <select className="input" value={form.wheelSize} onChange={(e) => update({ wheelSize: e.target.value })}>
               <option value="26">26"</option>
               <option value="27.5">27.5" (650b)</option>
               <option value="29">29" (700c)</option>
             </select>
-          </label>
-          <label>
-            <div className="lbl" style={{ fontSize: 11 }}>Ancho neumático (mm)</div>
-            <input type="number" min="20" max="120" value={form.tireWidthMm} onChange={(e) => update({ tireWidthMm: e.target.value })} style={{ width: 100 }} />
-            <div style={{ color: 'var(--text-dim)', fontSize: 11 }}>2.0"≈51 · 2.3"≈58 · 2.4"≈61</div>
-          </label>
-          <label>
-            <div className="lbl" style={{ fontSize: 11 }}>Override circunferencia (mm, opc.)</div>
-            <input type="number" placeholder={`calc: ${computedCirc}`} value={form.customCircumferenceMm ?? ''} onChange={(e) => update({ customCircumferenceMm: e.target.value })} style={{ width: 130 }} />
-          </label>
-          <div style={{ color: 'var(--text-dim)', fontSize: 12 }}>
-            Circunferencia efectiva: <b style={{ color: 'var(--accent)' }}>{Math.round(wheelCircumferenceMm({ ...form, customCircumferenceMm: form.customCircumferenceMm ? Number(form.customCircumferenceMm) : null }))} mm</b>
+          </div>
+          <div className="field">
+            <span className="lbl">Ancho neumático (mm)</span>
+            <input className="input" type="number" min="20" max="120" value={form.tireWidthMm}
+              onChange={(e) => update({ tireWidthMm: e.target.value })} style={{ width: 110 }} />
+          </div>
+          <div className="field">
+            <span className="lbl">Override circunf. (mm)</span>
+            <input className="input" type="number" placeholder={`calc: ${computedCirc}`}
+              value={form.customCircumferenceMm ?? ''}
+              onChange={(e) => update({ customCircumferenceMm: e.target.value })} style={{ width: 140 }} />
+          </div>
+          <div className="mono" style={{ fontSize: 11.5, color: 'var(--ink-dim)' }}>
+            efectiva: <b style={{ color: 'var(--forest)' }}>{computedCirc} mm</b>
           </div>
         </div>
       </section>
 
       <section>
-        <div className="lbl">Bielas</div>
+        <div className="eyebrow" style={{ marginBottom: 10 }}>Bielas</div>
         <div className="row gap" style={{ flexWrap: 'wrap' }}>
-          <label>
-            <div className="lbl" style={{ fontSize: 11 }}>Longitud de palanca (mm)</div>
-            <input type="number" min="150" max="200" step="2.5" value={form.crankLengthMm} onChange={(e) => update({ crankLengthMm: e.target.value })} style={{ width: 110 }} />
-            <div style={{ color: 'var(--text-dim)', fontSize: 11 }}>típicas: 165, 170, 172.5, 175</div>
-          </label>
-          <label>
-            <div className="lbl" style={{ fontSize: 11 }}>Cadencia ref. (rpm)</div>
-            <input type="number" min="40" max="140" value={form.referenceCadence} onChange={(e) => update({ referenceCadence: e.target.value })} style={{ width: 100 }} />
-          </label>
+          <div className="field">
+            <span className="lbl">Palanca (mm)</span>
+            <input className="input" type="number" min="150" max="200" step="2.5" value={form.crankLengthMm}
+              onChange={(e) => update({ crankLengthMm: e.target.value })} style={{ width: 110 }} />
+          </div>
+          <div className="field">
+            <span className="lbl">Cadencia ref. (rpm)</span>
+            <input className="input" type="number" min="40" max="140" value={form.referenceCadence}
+              onChange={(e) => update({ referenceCadence: e.target.value })} style={{ width: 110 }} />
+          </div>
         </div>
       </section>
 
       <section>
-        <div className="lbl">Plato/s</div>
+        <div className="eyebrow" style={{ marginBottom: 10 }}>Plato/s</div>
         <div className="row" style={{ gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
           {form.chainrings.map((c, i) => (
-            <span key={i} className="row" style={{ gap: 4, alignItems: 'center' }}>
-              <input type="number" value={c} onChange={(e) => setChainring(i, e.target.value)} style={{ width: 70 }} />
-              <span style={{ color: 'var(--text-dim)', fontSize: 12 }}>T</span>
-              {form.chainrings.length > 1 && (
-                <button type="button" onClick={() => removeChainring(i)} style={{ padding: '2px 8px' }}>×</button>
-              )}
+            <span key={i} className="row" style={{ gap: 4 }}>
+              <input className="input" type="number" value={c} onChange={(e) => setChainring(i, e.target.value)} style={{ width: 80 }} />
+              <span className="mono" style={{ fontSize: 11, color: 'var(--ink-dim)' }}>t</span>
+              {form.chainrings.length > 1 && <button type="button" className="btn sm" onClick={() => removeChainring(i)}>×</button>}
             </span>
           ))}
-          <button type="button" onClick={addChainring}>+ plato</button>
+          <button type="button" className="btn sm" onClick={addChainring}>+ plato</button>
         </div>
       </section>
 
       <section>
-        <div className="lbl">Cassette</div>
-        <div className="row" style={{ gap: 8, alignItems: 'center', marginBottom: 8 }}>
-          <select onChange={(e) => { loadPreset(e.target.value); e.target.value = ''; }} defaultValue="">
+        <div className="eyebrow" style={{ marginBottom: 10 }}>Cassette</div>
+        <div className="row" style={{ gap: 8, alignItems: 'center', marginBottom: 10 }}>
+          <select className="input" onChange={(e) => { loadPreset(e.target.value); e.target.value = ''; }} defaultValue="" style={{ maxWidth: 260 }}>
             <option value="">— cargar preset —</option>
             {Object.keys(PRESET_CASSETTES).map((n) => <option key={n} value={n}>{n}</option>)}
           </select>
-          <span style={{ color: 'var(--text-dim)', fontSize: 12 }}>{form.cassette.length} piñones</span>
+          <span className="mono" style={{ fontSize: 11, color: 'var(--ink-dim)' }}>{form.cassette.length} piñones</span>
         </div>
-        <div className="row" style={{ gap: 6, flexWrap: 'wrap', alignItems: 'center' }}>
+        <div className="row" style={{ gap: 6, flexWrap: 'wrap' }}>
           {form.cassette.map((c, i) => (
-            <span key={i} className="row" style={{ gap: 2, alignItems: 'center' }}>
-              <input type="number" value={c} onChange={(e) => setCog(i, e.target.value)} style={{ width: 60 }} />
-              {form.cassette.length > 2 && (
-                <button type="button" onClick={() => removeCog(i)} style={{ padding: '2px 6px' }}>×</button>
-              )}
+            <span key={i} className="row" style={{ gap: 2 }}>
+              <input className="input" type="number" value={c} onChange={(e) => setCog(i, e.target.value)} style={{ width: 64 }} />
+              {form.cassette.length > 2 && <button type="button" className="btn sm" onClick={() => removeCog(i)} style={{ padding: '2px 6px' }}>×</button>}
             </span>
           ))}
-          <button type="button" onClick={addCog}>+</button>
+          <button type="button" className="btn sm" onClick={addCog}>+ piñón</button>
         </div>
       </section>
 
       <div className="row" style={{ alignItems: 'center', gap: 12 }}>
         <button type="submit" className="primary">Guardar specs</button>
-        {savedAt && <span style={{ color: 'var(--accent)', fontSize: 12 }}>✓ guardado</span>}
+        {savedAt && <span className="mono" style={{ color: 'var(--forest)', fontSize: 12, letterSpacing: '0.06em' }}>✓ guardado</span>}
       </div>
     </form>
   );
